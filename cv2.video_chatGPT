@@ -1,0 +1,40 @@
+import cv2
+import numpy as np
+
+# Definiranje donje i gornje granice boje crvene koju ćemo pratiti
+red_lower = np.array([0, 0, 255])
+red_upper = np.array([50, 50, 255])
+
+# Pokretanje kamere
+cap = cv2.VideoCapture("3.mp4")
+
+while True:
+    # Učitavanje videa u nizu slika
+    ret, frame = cap.read()
+
+    # Pretvaranje boje slike u HSV format
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # Stvaranje maske crvene boje slične u boji
+    mask = cv2.inRange(hsv, red_lower, red_upper)
+
+    # Pronalaženje kontura objekata u slici
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Pronalaženje najvećeg objekta crvene boje i iscrtavanje pravokutnika oko njega
+    if len(contours) > 0:
+        c = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(c)
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+    # Prikazivanje izvorne slike i slike s maskom crvene boje
+    cv2.imshow('Original', frame)
+    cv2.imshow('Red', mask)
+
+    # Izlazak iz petlje pritiskom na tipku 'q'
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Oslobađanje resursa i zatvaranje svih prozora
+cap.release()
+cv2.destroyAllWindows()
